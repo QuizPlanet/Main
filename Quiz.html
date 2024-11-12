@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Tema</title>
+    <style>
+      * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+      }
+  
+      body {
+          font-family: 'Poppins', sans-serif; /* Modern and clean font */
+          background: #f4f7fc; /* Soft background for better readability */
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          color: #333;
+          transition: background-color 0.3s ease;
+          padding: 20px;
+      }
+  
+      .quiz-container, .code-container {
+          border-radius: 15px;
+          padding: 40px;
+          box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+          text-align: center;
+          width: 100%;
+          max-width: 450px; /* Limit width for better mobile experience */
+          background: white;
+          animation: fadeIn 1s ease-out;
+      }
+  
+      .code-container {
+          background: linear-gradient(135deg, #b0c4de, #4682b4); /* Neutral blue gradient */
+      }
+  
+      .romantisk-background {
+          background: linear-gradient(135deg, #ff7eb9, #ff65a3); /* Romantic pink gradient */
+      }
+  
+      .normal-background {
+          background: linear-gradient(135deg, #4682b4, #5f9ea0); /* Soft blue gradient */
+      }
+  
+      h1 {
+          font-size: 2.8rem;
+          color: #2c3e50;
+          margin-bottom: 20px;
+          text-transform: uppercase;
+          font-family: 'Montserrat', sans-serif; /* Sleek font for headings */
+          font-weight: 600;
+      }
+  
+      p {
+          font-size: 1.1rem;
+          color: #7f8c8d;
+          margin-bottom: 30px;
+      }
+  
+      .input-field {
+          width: 100%;
+          padding: 12px 18px;
+          font-size: 1.2rem;
+          margin: 15px 0;
+          border-radius: 8px;
+          border: 1px solid #ccc;
+          background-color: #f9f9f9;
+          transition: border-color 0.3s ease;
+      }
+  
+      .input-field:focus {
+          border-color: #3498db;
+          outline: none;
+      }
+  
+      button {
+          padding: 12px 25px;
+          background-color: #3498db;
+          color: #fff;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 1.2rem;
+          width: 100%;
+          transition: background-color 0.3s, transform 0.2s ease-in-out;
+      }
+  
+      button:hover {
+          background-color: #2980b9;
+          transform: translateY(-2px);
+      }
+  
+      button:active {
+          transform: translateY(2px);
+      }
+  
+      #timer {
+          font-size: 1.5rem;
+          color: #2c3e50;
+          margin-bottom: 20px;
+          font-weight: bold;
+      }
+  
+      #question-container {
+          font-size: 1.25rem;
+          color: #fff;
+          margin-bottom: 20px;
+          font-weight: bold;
+      }
+  
+      #options {
+          margin-bottom: 20px;
+      }
+  
+      #question-info {
+          margin-top: 20px;
+          font-size: 1rem;
+          color: #ddd;
+      }
+  
+      .option {
+          margin: 8px 0;
+          padding: 12px;
+          background-color: #fff;
+          color: #333;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 1.1rem;
+          width: 100%;
+          border: 1px solid #ccc;
+          transition: background-color 0.3s, transform 0.2s ease-in-out;
+      }
+  
+      .option:hover {
+          background-color: #e1e8f0;
+          transform: translateY(-2px);
+      }
+  
+      .option:active {
+          transform: translateY(2px);
+      }
+  
+      .back-button {
+          padding: 12px 25px;
+          background-color: #e74c3c;
+          color: #fff;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 1.1rem;
+          margin-top: 20px;
+          width: 100%;
+          transition: background-color 0.3s, transform 0.2s ease-in-out;
+      }
+  
+      .back-button:hover {
+          background-color: #c0392b;
+          transform: translateY(-2px);
+      }
+  
+      .back-button:active {
+          transform: translateY(2px);
+      }
+  
+      @keyframes fadeIn {
+          from {
+              opacity: 0;
+          }
+          to {
+              opacity: 1;
+          }
+      }
+  </style>
+  
+</head>
+<body>
+    <!-- Kode-input -->
+    <div class="code-container" id="code-container">
+        <h1>Quiz Tema</h1>
+        <p>For å starte quizen, skriv inn koden:</p>
+        <input type="text" id="quiz-code" class="input-field" placeholder="Skriv inn kode">
+        <button onclick="checkCode()">Start Quiz</button>
+    </div>
+
+    <!-- Quiz-container -->
+    <div class="quiz-container" id="quiz-container" style="display: none;">
+        <h1 id="quiz-title">Quiz</h1>
+        <div id="timer">Tid igjen: <span id="time"></span></div>
+        <div id="question-container">
+            <p id="question-text">Spørsmål 1</p>
+            <div id="options"></div>
+        </div>
+        <div id="question-info">
+            <span id="question-number">Spørsmål 1 av 30</span>
+        </div>
+        <button id="next-btn" onclick="nextQuestion()">Neste spørsmål</button>
+        <button class="back-button" onclick="goBackToCode()">Tilbake</button>
+    </div>
+
+    <script>
+        let currentQuestion = 0;
+        let score = 0;
+        let timer;
+        let timeLeft = 30; // Tid for hvert spørsmål (i sekunder)
+
+        const validCodes = {
+            "romantisk": [
+                { question: "Hva er den mest romantiske filmen?", options: ["Titanic", "The Notebook", "Love Actually", "Pretty Woman"], answer: "Titanic" },
+                { question: "Hvilken dato feires Valentinsdagen?", options: ["14. februar", "12. februar", "1. januar", "25. desember"], answer: "14. februar" }
+            ],
+            "normal": [
+    { "question": "Hva er hovedstaden i Norge?", "options": ["Oslo", "Bergen", "Stavanger", "Trondheim"], "answer": "Oslo" },
+    { "question": "Hvilken farge får du hvis du blander rødt og blått?", "options": ["Lilla", "Grønn", "Gul", "Oransje"], "answer": "Lilla" },
+    { "question": "Hva er det største organet i menneskekroppen?", "options": ["Hud", "Hjerte", "Lunger", "Lever"], "answer": "Hud" },
+    { "question": "Hvilken planet er kjent som den røde planeten?", "options": ["Mars", "Venus", "Jorden", "Saturn"], "answer": "Mars" },
+    { "question": "Hvilket dyr er kjent for å ha lang hals?", "options": ["Giraff", "Elefant", "Kamel", "Løve"], "answer": "Giraff" },
+    { "question": "Hvilken frukt er kjent for å holde doktoren borte?", "options": ["Eple", "Banan", "Appelsin", "Pære"], "answer": "Eple" },
+    { "question": "Hvilket land er kjent for å ha pyramider?", "options": ["Egypt", "Mexico", "India", "Greece"], "answer": "Egypt" },
+    { "question": "Hva heter verdens høyeste fjell?", "options": ["Mount Everest", "K2", "Kangchenjunga", "Lhotse"], "answer": "Mount Everest" },
+    { "question": "Hva er hovedingrediensen i guacamole?", "options": ["Avokado", "Tomat", "Løk", "Chili"], "answer": "Avokado" },
+    { "question": "Hvilken type dyregruppe tilhører en delfin?", "options": ["Pattedyr", "Amfibie", "Fugl", "Reptil"], "answer": "Pattedyr" },
+    { "question": "Hva er navnet på det største havet?", "options": ["Stillehavet", "Atlanterhavet", "Indiskehavet", "Arktiskehavet"], "answer": "Stillehavet" },
+    { "question": "Hva er navnet på den første måneden i året?", "options": ["Januar", "Februar", "Mars", "April"], "answer": "Januar" },
+    { "question": "Hva kalles det når du ser på stjernene?", "options": ["Astronomi", "Geologi", "Biologi", "Kjemi"], "answer": "Astronomi" },
+    { "question": "Hvem malte Mona Lisa?", "options": ["Leonardo da Vinci", "Pablo Picasso", "Vincent van Gogh", "Michelangelo"], "answer": "Leonardo da Vinci" },
+    { "question": "Hva er hovedingrediensen i sushi?", "options": ["Ris", "Kjøtt", "Pasta", "Potet"], "answer": "Ris" },
+    { "question": "Hva er hovedstaden i Sverige?", "options": ["Stockholm", "Gøteborg", "Malmö", "Uppsala"], "answer": "Stockholm" },
+    { "question": "Hva er den største byen i USA?", "options": ["New York", "Los Angeles", "Chicago", "Houston"], "answer": "New York" },
+    { "question": "Hvilken type tre produserer epler?", "options": ["Epletre", "Pæretre", "Plomme tre", "Kirsebærtre"], "answer": "Epletre" },
+    { "question": "Hva er navnet på verdens største ørken?", "options": ["Sahara", "Gobi", "Karakum", "Arabiske ørkenen"], "answer": "Sahara" },
+    { "question": "Hva er verdens mest talte språk?", "options": ["Mandarin", "Engelsk", "Spansk", "Hindi"], "answer": "Mandarin" },
+    { "question": "Hva er det naturlige tallet som kommer etter 4?", "options": ["5", "6", "3", "7"], "answer": "5" },
+    { "question": "Hvilken by er kjent som 'Den evige stad'?", "options": ["Roma", "Athen", "Jerusalem", "Kairo"], "answer": "Roma" },
+    { "question": "Hva er den kjemiske formelen for vann?", "options": ["H2O", "CO2", "O2", "H2SO4"], "answer": "H2O" },
+    { "question": "Hvilket dyr er kjent for å kunne endre farge?", "options": ["Kamleon", "Kameleon", "Løve", "Tiger"], "answer": "Kamleon" },
+    { "question": "Hvilken farge er vanligvis forbundet med solen?", "options": ["Gul", "Blå", "Rød", "Grønn"], "answer": "Gul" },
+    { "question": "Hva er hovedstadens navn i Frankrike?", "options": ["Paris", "Marseille", "Lyon", "Bordeaux"], "answer": "Paris" },
+    { "question": "Hvem skrev Harry Potter-serien?", "options": ["J.K. Rowling", "J.R.R. Tolkien", "George R.R. Martin", "C.S. Lewis"], "answer": "J.K. Rowling" },
+    { "question": "Hva er den største kontinentet på jorden?", "options": ["Asia", "Europa", "Afrika", "Australia"], "answer": "Asia" },
+    { "question": "Hva betyr ordet 'blogg'?", "options": ["Weblog", "Webblokk", "Online bok", "Internett logg"], "answer": "Weblog" },
+    { "question": "Hvilken dag feires jul?", "options": ["25. desember", "1. januar", "14. februar", "17. mai"], "answer": "25. desember" },
+    { "question": "Hva er hovedingrediensen i hummus?", "options": ["Kikærter", "Linser", "Bønner", "Soya"], "answer": "Kikærter" },
+    { "question": "Hva er hovedingrediensen i en pizza?", "options": ["Deig", "Ost", "Tomatsaus", "Skinke"], "answer": "Deig" },
+    { "question": "Hva er navnet på den berømte statue som er plassert på påskeøya?", "options": ["Moai", "Venus", "David", "Poseidon"], "answer": "Moai" },
+    { "question": "Hva er det høyeste treet i verden?", "options": ["Sekvojatrær", "Eik", "Furu", "Gran"], "answer": "Sekvojatrær" }
+]
+
+        };
+
+        let currentQuiz = [];
+
+        function checkCode() {
+            const code = document.getElementById('quiz-code').value;
+            if (validCodes[code]) {
+                currentQuiz = validCodes[code];
+                document.getElementById('code-container').style.display = 'none';
+                document.getElementById('quiz-container').style.display = 'block';
+                document.getElementById('quiz-title').textContent = code.charAt(0).toUpperCase() + code.slice(1) + " Quiz"; 
+                
+                // Change background based on code entered
+                if (code === "romantisk") {
+                    document.body.className = "romantisk-background";  // Apply romantic background
+                } else if (code === "normal") {
+                    document.body.className = "normal-background";  // Apply somatic background
+                }
+
+                startTimer();
+                loadQuestion();
+            } else {
+                alert('Ugyldig kode. Prøv igjen.');
+            }
+        }
+
+        function startTimer() {
+            timer = setInterval(function() {
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    alert('Tid er ute!');
+                    nextQuestion();
+                } else {
+                    document.getElementById('time').textContent = timeLeft + " sekunder";
+                    timeLeft--;
+                }
+            }, 1000);
+        }
+
+        function loadQuestion() {
+            const question = currentQuiz[currentQuestion];
+            document.getElementById('question-text').textContent = question.question;
+            document.getElementById('question-number').textContent = `Spørsmål ${currentQuestion + 1} av ${currentQuiz.length}`;
+            document.getElementById('options').innerHTML = '';
+            question.options.forEach(option => {
+                const optionElement = document.createElement('div');
+                optionElement.classList.add('option');
+                optionElement.textContent = option;
+                optionElement.onclick = () => checkAnswer(option);
+                document.getElementById('options').appendChild(optionElement);
+            });
+        }
+
+        function checkAnswer(selectedOption) {
+            const correctAnswer = currentQuiz[currentQuestion].answer;
+            if (selectedOption === correctAnswer) {
+                score++;
+            }
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < currentQuiz.length) {
+                loadQuestion();
+            } else {
+                alert(`Quizen er over! Du fikk ${score} poeng.`);
+                goBackToCode();
+            }
+        }
+
+        function goBackToCode() {
+            document.getElementById('quiz-container').style.display = 'none';
+            document.getElementById('code-container').style.display = 'block';
+            document.getElementById('quiz-code').value = '';
+            currentQuestion = 0;
+            score = 0;
+            timeLeft = 30;
+            clearInterval(timer);
+
+            // Reset background when going back
+            document.body.className = '';
+        }
+    </script>
+</body>
+</html>
